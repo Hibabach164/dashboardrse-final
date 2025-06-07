@@ -21,8 +21,6 @@ except Exception as e:
 df.columns = df.columns.str.strip()
 st.write("Colonnes chargées :", df.columns.tolist())
 
-
-
 # --- Nettoyage éventuel des colonnes (strip espaces) ---
 df.columns = df.columns.str.strip()
 
@@ -30,14 +28,12 @@ df.columns = df.columns.str.strip()
 if "Entreprises" in df.columns:
     df.rename(columns={"Entreprises": "Entreprise"}, inplace=True)
 
-
 # --- Filtres interactifs dans la sidebar ---
 with st.sidebar:
     st.header("🔎 Filtres interactifs")
     themes = st.multiselect("🎯 Thème RSE", options=df["Thème RSE"].unique(), default=df["Thème RSE"].unique())
     entreprises = st.multiselect("🏢 Entreprises", options=df["Entreprise"].unique(), default=df["Entreprise"].unique())
-    score_min = st.slider("🌡️ Score RSE minimal", min_value=0, max_value=100, value=50)  # ou st.sidebar.slider(...)
-
+    score_min = st.slider("🌡️ Score RSE minimal", min_value=0, max_value=100, value=50)
 
 # --- Filtrage des données ---
 df_filtre = df[
@@ -52,6 +48,7 @@ st.dataframe(df_filtre)
 
 # --- Moyennes par entreprise ---
 score_moy = df_filtre.groupby("Entreprise")["Score RSE"].mean().reset_index().sort_values(by="Score RSE", ascending=False)
+
 # --- Graphique barres avec seuil ---
 st.subheader("📈 Score RSE moyen par entreprise avec seuil")
 import matplotlib.pyplot as plt
@@ -66,7 +63,6 @@ ax.legend()
 plt.xticks(rotation=45)
 st.pyplot(fig)
 
-
 # --- Jauge ---
 st.subheader("🎯 Score RSE moyen global")
 moyenne_globale = round(score_moy["Score RSE"].mean(), 2)
@@ -77,7 +73,6 @@ st.plotly_chart(fig_jauge, use_container_width=True)
 
 # --- Message conditionnel sur le seuil ---
 st.markdown(f"<p style='color:{'green' if moyenne_globale >= score_min else 'red'}; font-weight:bold;'>🎯 Résultat : Le score moyen est {'au-dessus' if moyenne_globale >= score_min else 'en dessous'} du seuil fixé ({score_min})</p>", unsafe_allow_html=True)
-
 
 # --- Export CSV ---
 csv_export = score_moy.to_csv(index=False).encode("utf-8")
