@@ -52,13 +52,10 @@ st.dataframe(df_filtre)
 
 # --- Moyennes par entreprise ---
 score_moy = df_filtre.groupby("Entreprise")["Score RSE"].mean().reset_index().sort_values(by="Score RSE", ascending=False)
-
-# --- Graphique barres ---
-st.subheader("📈 Score RSE moyen par entreprise")
-import matplotlib.pyplot as plt
-
 # --- Graphique barres avec seuil ---
 st.subheader("📈 Score RSE moyen par entreprise avec seuil")
+import matplotlib.pyplot as plt
+
 fig, ax = plt.subplots()
 bars = ax.bar(score_moy["Entreprise"], score_moy["Score RSE"], color="orange")
 ax.axhline(score_min, color='red', linestyle='--', label=f"Seuil : {score_min}")
@@ -69,7 +66,6 @@ ax.legend()
 plt.xticks(rotation=45)
 st.pyplot(fig)
 
-st.plotly_chart(fig, use_container_width=True)
 
 # --- Jauge ---
 st.subheader("🎯 Score RSE moyen global")
@@ -78,6 +74,10 @@ fig_jauge = px.pie(values=[moyenne_globale, 100 - moyenne_globale], names=["Scor
                    color_discrete_sequence=["#6a0dad", "#e8e8e8"])
 fig_jauge.update_traces(textinfo='percent+label')
 st.plotly_chart(fig_jauge, use_container_width=True)
+
+# --- Message conditionnel sur le seuil ---
+st.markdown(f"<p style='color:{'green' if moyenne_globale >= score_min else 'red'}; font-weight:bold;'>🎯 Résultat : Le score moyen est {'au-dessus' if moyenne_globale >= score_min else 'en dessous'} du seuil fixé ({score_min})</p>", unsafe_allow_html=True)
+
 
 # --- Export CSV ---
 csv_export = score_moy.to_csv(index=False).encode("utf-8")
