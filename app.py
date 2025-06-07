@@ -1,44 +1,67 @@
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+from PIL import Image
 
-# Titre de l'application
-st.set_page_config(page_title="Dashboard RSE", layout="wide")
-st.title("Tableau de bord - Score RSE des entreprises")
+# --- Logo ---
+logo = Image.open("logo_rse_streamlit.png")
+st.image(logo, width=120)
 
-# Lecture des données avec gestion d'encodage et du séparateur
+# --- Titre principal ---
+st.markdown("<h1 style='text-align: center; color: #6a0dad;'>🌿 Dashboard RSE interactif</h1>", unsafe_allow_html=True)
+
+# --- Chargement du fichier CSV (encodage compatible) ---
 try:
-    df = pd.read_csv("donnees_rse_1.csv", encoding="utf-8", sep=';')
+    df = pd.read_csv("donnees_rse_1.csv", encoding="utf-8-sig", sep=";")
 except UnicodeDecodeError:
-    df = pd.read_csv("donnees_rse_1.csv", encoding="ISO-8859-1", sep=';')
+    st.error("Erreur d'encodage : impossible de lire le fichier CSV. Veuillez vérifier son format UTF-8 avec séparateur ';'")
+    st.stop()
 
+# --- Nettoyage éventuel des colonnes (strip espaces) ---
+df.columns = df.columns.str.strip()
 
-# Nettoyage de colonnes avec des NaN potentiels
-df.dropna(subset=["Entreprise", "Pilier", "Score"], inplace=True)
+# --- Vérification & renommage ---
+if "Entreprises" in df.columns:
+    df.rename(columns={"Entreprises": "Entreprise"}, inplace=True)
 
-# Filtres
-entreprises = st.sidebar.multiselect("Choisir une ou plusieurs entreprises :", df["Entreprise"].unique(), default=df["Entreprise"].unique())
-piliers = st.sidebar.multiselect("Choisir un ou plusieurs piliers RSE :", df["Pilier"].unique(), default=df["Pilier"].unique())
-seuil = st.sidebar.slider("Seuil de performance RSE :", min_value=0, max_value=100, value=70)
+# --- Filtres interactifs dans la sidebar ---
+with st.sidebar:
+    st.header("🔎 Filtres interactifs")
+    themes = st.multiselect("🎯 Thème RSE", options=df["Thème RSE"].unique(), default=df["Thème RSE"].unique())
+    entreprises = st.multiselect("🏢 Entreprises", options=df["Entreprise"].unique(), default=df["Entreprise"].unique())
+    score_min = st.slider("🌡️ Score RSE minimal", min_value=0, max_value=100, value=50)
 
-df_filtered = df[(df["Entreprise"].isin(entreprises)) & (df["Pilier"].isin(piliers))]
+# --- Filtrage des données ---
+df_filtre = df[
+    (df["Thème RSE"].isin(themes)) &
+    (df["Entreprise"].isin(entreprises)) &
+    (df["Score RSE"] >= score_min)
+]
 
-# KPI
-moyenne_score = round(df_filtered["Score"].mean(), 2)
-st.metric("Score RSE moyen", moyenne_score)
+# --- Aperçu ---
+st.subheader("📑 Aperçu des données filtrées")
+st.dataframe(df_filtre)
 
-# Histogramme
-st.subheader("Répartition des scores RSE par entreprise")
-fig, ax = plt.subplots()
-df_filtered.groupby("Entreprise")["Score"].mean().sort_values().plot(kind="barh", ax=ax)
-ax.axvline(seuil, color="red", linestyle="--", label="Seuil de performance")
-ax.set_xlabel("Score moyen")
-ax.set_ylabel("Entreprise")
-ax.set_title("Score RSE moyen par entreprise")
-ax.legend()
-st.pyplot(fig)
+# --- Moyennes par entreprise ---
+score_moy = df_filtre.groupby("Entreprise")["Score RSE"].mean().reset_index().sort_values(by="Score RSE", ascending=False)
 
-# Jauge et tableau
-st.subheader("Données détaillées")
-st.dataframe(df_filtered.reset_index(drop=True))
+# --- Graphique barres ---
+st.subheader("📈 Score RSE moyen par entreprise")
+fig = px.bar(score_moy, x="Entreprise", y="Score RSE", color="Score RSE", color_continuous_scale="greens")
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Jauge ---
+st.subheader("🎯 Score RSE moyen global")
+moyenne_globale = round(score_moy["Score RSE"].mean(), 2)
+fig_jauge = px.pie(values=[moyenne_globale, 100 - moyenne_globale], names=["Score Moyen", "Reste"], hole=0.7,
+                   color_discrete_sequence=["#6a0dad", "#e8e8e8"])
+fig_jauge.update_traces(textinfo='percent+label')
+st.plotly_chart(fig_jauge, use_container_width=True)
+
+# --- Export CSV ---
+csv_export = score_moy.to_csv(index=False).encode("utf-8")
+st.download_button("📥 Exporter les résultats", csv_export, "scores_rse_filtrés.csv", "text/csv")
+
+# --- Footer ---
+st.markdown("<hr><p style='text-align: center;'>🚀 Mémoire Data Analytics | Hibat Allah Bachterzi | 2025</p>", unsafe_allow_html=True)
