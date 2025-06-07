@@ -31,11 +31,13 @@ if "Entreprises" in df.columns:
     df.rename(columns={"Entreprises": "Entreprise"}, inplace=True)
 
 # --- Filtres interactifs dans la sidebar ---
+# --- Filtres interactifs dans la sidebar ---
 with st.sidebar:
     st.header("🔎 Filtres interactifs")
     themes = st.multiselect("🎯 Thème RSE", options=df["Thème RSE"].unique(), default=df["Thème RSE"].unique())
     entreprises = st.multiselect("🏢 Entreprises", options=df["Entreprise"].unique(), default=df["Entreprise"].unique())
-    score_min = st.slider("🌡️ Score RSE minimal", min_value=0, max_value=100, value=50)
+    score_min = st.slider("🌡️ Score RSE minimal", min_value=0, max_value=100, value=50)  # ou st.sidebar.slider(...)
+
 
 # --- Filtrage des données ---
 df_filtre = df[
