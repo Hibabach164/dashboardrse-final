@@ -10,6 +10,7 @@ st.image(logo, width=120)
 
 # --- Titre principal ---
 st.markdown("<h1 style='text-align: center; color: #6a0dad;'>🌿 Dashboard RSE interactif</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size:18px;'>Bienvenue sur l'application de visualisation du score RSE des entreprises. Ce tableau de bord vous permet de filtrer les résultats par thème et entreprise, et d'analyser les performances RSE moyennes de manière interactive.</p>", unsafe_allow_html=True)
 
 # --- Chargement du fichier CSV (encodage compatible) ---
 try:
