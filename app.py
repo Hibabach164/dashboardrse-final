@@ -14,9 +14,13 @@ st.markdown("<h1 style='text-align: center; color: #6a0dad;'>🌿 Dashboard RSE 
 # --- Chargement du fichier CSV (encodage compatible) ---
 try:
     df = pd.read_csv("donnees_rse_1.csv", encoding="utf-8-sig", sep=";")
-except UnicodeDecodeError:
-    st.error("Erreur d'encodage : impossible de lire le fichier CSV. Veuillez vérifier son format UTF-8 avec séparateur ';'")
+except Exception as e:
+    st.error(f"Erreur de lecture CSV : {e}")
     st.stop()
+df.columns = df.columns.str.strip()
+st.write("Colonnes chargées :", df.columns.tolist())
+
+
 
 # --- Nettoyage éventuel des colonnes (strip espaces) ---
 df.columns = df.columns.str.strip()
