@@ -30,7 +30,7 @@ df.columns = df.columns.str.strip()
 if "Entreprises" in df.columns:
     df.rename(columns={"Entreprises": "Entreprise"}, inplace=True)
 
-# --- Filtres interactifs dans la sidebar ---
+
 # --- Filtres interactifs dans la sidebar ---
 with st.sidebar:
     st.header("🔎 Filtres interactifs")
@@ -55,7 +55,20 @@ score_moy = df_filtre.groupby("Entreprise")["Score RSE"].mean().reset_index().so
 
 # --- Graphique barres ---
 st.subheader("📈 Score RSE moyen par entreprise")
-fig = px.bar(score_moy, x="Entreprise", y="Score RSE", color="Score RSE", color_continuous_scale="greens")
+import matplotlib.pyplot as plt
+
+# --- Graphique barres avec seuil ---
+st.subheader("📈 Score RSE moyen par entreprise avec seuil")
+fig, ax = plt.subplots()
+bars = ax.bar(score_moy["Entreprise"], score_moy["Score RSE"], color="orange")
+ax.axhline(score_min, color='red', linestyle='--', label=f"Seuil : {score_min}")
+ax.set_ylabel("Score RSE")
+ax.set_xlabel("Entreprise")
+ax.set_title("Score RSE moyen par entreprise")
+ax.legend()
+plt.xticks(rotation=45)
+st.pyplot(fig)
+
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Jauge ---
