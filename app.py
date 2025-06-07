@@ -8,10 +8,12 @@ st.set_page_config(page_title="Dashboard RSE", layout="wide")
 st.title("Tableau de bord - Score RSE des entreprises")
 
 # Lecture des données avec encodage UTF-8 explicite
+try:# Lecture des données avec gestion de l'encodage et du séparateur
 try:
-    df = pd.read_csv("donnees_rse_1.csv", encoding="utf-8")
+    df = pd.read_csv("donnees_rse_1.csv", encoding="utf-8", sep=';')
 except UnicodeDecodeError:
-    df = pd.read_csv("donnees_rse_1.csv", encoding="ISO-8859-1")
+    df = pd.read_csv("donnees_rse_1.csv", encoding="ISO-8859-1", sep=';')
+
 
 # Nettoyage de colonnes avec des NaN potentiels
 df.dropna(subset=["Entreprise", "Pilier", "Score"], inplace=True)
